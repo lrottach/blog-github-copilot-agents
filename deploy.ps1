@@ -331,7 +331,6 @@ foreach ($env in $Environments) {
 Write-Section "Deployment Summary"
 
 $successCount = 0
-$failureCount = 0
 $skippedCount = 0
 
 foreach ($env in $Environments) {
