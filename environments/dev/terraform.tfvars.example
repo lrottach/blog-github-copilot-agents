@@ -1,0 +1,50 @@
+# -----------------------------------------------------------------------------
+# Dev Environment - Example Variables
+# -----------------------------------------------------------------------------
+# Copy this file to terraform.tfvars and update the values as needed.
+# Note: terraform.tfvars is excluded from version control via .gitignore
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Global Configuration
+# -----------------------------------------------------------------------------
+
+environment   = "dev"
+location      = "westeurope"
+workload_name = "demo"
+
+tags = {
+  Owner      = "your-email@example.com"
+  CostCenter = "development"
+}
+
+# -----------------------------------------------------------------------------
+# Network Configuration
+# -----------------------------------------------------------------------------
+
+vnet_address_space = ["10.0.0.0/16"]
+subnet_app_prefix  = ["10.0.1.0/24"]
+subnet_data_prefix = ["10.0.2.0/24"]
+
+# -----------------------------------------------------------------------------
+# App Service Configuration
+# -----------------------------------------------------------------------------
+
+app_service_sku          = "S1"
+app_service_worker_count = 1
+dotnet_version           = "8.0"
+
+# -----------------------------------------------------------------------------
+# SQL Database Configuration
+# -----------------------------------------------------------------------------
+
+sql_administrator_login    = "sqladmin"
+sql_administrator_password = "CHANGE_ME_SecurePassword123!" # Use a secure password!
+sql_sku                    = "S0"
+sql_max_size_gb            = 2
+
+# -----------------------------------------------------------------------------
+# Storage Configuration
+# -----------------------------------------------------------------------------
+
+storage_replication_type = "LRS"
