@@ -64,7 +64,7 @@ check_prerequisites() {
         exit 1
     fi
     
-    local tf_version=$(terraform version -json | grep -o '"terraform_version":"[^"]*"' | cut -d'"' -f4)
+    local tf_version=$(terraform version | head -n1 | awk '{print $2}')
     log_success "Terraform version: ${tf_version}"
 }
 
@@ -79,16 +79,9 @@ validate_environment() {
     fi
     
     # Check if environment is configured (has more than just .gitkeep)
-    local file_count=$(find "${env_path}" -maxdepth 1 -type f ! -name '.gitkeep' | wc -l)
-    if [[ ${file_count} -eq 0 ]]; then
-        log_warning "Environment '${env}' is not configured (only contains .gitkeep)"
-        return 2
-    fi
-    
-    # Check for required Terraform files
     if [[ ! -f "${env_path}/main.tf" ]]; then
-        log_error "Missing main.tf in ${env}"
-        return 1
+        log_warning "Environment '${env}' is not configured (missing main.tf)"
+        return 2
     fi
     
     return 0
@@ -101,9 +94,7 @@ terraform_init() {
     
     log_info "Initializing Terraform for '${env}' environment..."
     
-    cd "${env_path}"
-    
-    if terraform init -input=false; then
+    if terraform -chdir="${env_path}" init -input=false; then
         log_success "Terraform initialized successfully for '${env}'"
         return 0
     else
@@ -119,9 +110,7 @@ terraform_plan() {
     
     log_info "Running Terraform plan for '${env}' environment..."
     
-    cd "${env_path}"
-    
-    if terraform plan -input=false -out="${env}.tfplan"; then
+    if terraform -chdir="${env_path}" plan -input=false -out="${env}.tfplan"; then
         log_success "Terraform plan completed successfully for '${env}'"
         return 0
     else
@@ -138,10 +127,8 @@ terraform_apply() {
     
     log_info "Applying Terraform configuration for '${env}' environment..."
     
-    cd "${env_path}"
-    
     if [[ "${auto_approve}" == "true" ]]; then
-        if terraform apply -input=false "${env}.tfplan"; then
+        if terraform -chdir="${env_path}" apply -input=false "${env}.tfplan"; then
             log_success "Terraform apply completed successfully for '${env}'"
             return 0
         else
@@ -249,6 +236,18 @@ main() {
             -s|--stage)
                 if [[ -z "${2:-}" ]]; then
                     log_error "Missing stage argument for --stage option"
+                    exit 1
+                fi
+                # Validate stage is one of the valid stages
+                local valid_stage=false
+                for stage in "${STAGES[@]}"; do
+                    if [[ "$2" == "${stage}" ]]; then
+                        valid_stage=true
+                        break
+                    fi
+                done
+                if [[ "${valid_stage}" == "false" ]]; then
+                    log_error "Invalid stage: $2. Must be one of: ${STAGES[*]}"
                     exit 1
                 fi
                 selected_stages+=("$2")
