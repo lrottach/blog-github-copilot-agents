@@ -65,7 +65,11 @@ check_prerequisites() {
     fi
     
     local tf_version=$(terraform version | head -n1 | awk '{print $2}')
-    log_success "Terraform version: ${tf_version}"
+    if [[ -z "${tf_version}" ]]; then
+        log_warning "Unable to determine Terraform version"
+    else
+        log_success "Terraform version: ${tf_version}"
+    fi
 }
 
 # Validate environment directory exists and has required files
@@ -110,7 +114,7 @@ terraform_plan() {
     
     log_info "Running Terraform plan for '${env}' environment..."
     
-    if terraform -chdir="${env_path}" plan -input=false -out="${env}.tfplan"; then
+    if terraform -chdir="${env_path}" plan -input=false -out="./${env}.tfplan"; then
         log_success "Terraform plan completed successfully for '${env}'"
         return 0
     else
@@ -128,7 +132,7 @@ terraform_apply() {
     log_info "Applying Terraform configuration for '${env}' environment..."
     
     if [[ "${auto_approve}" == "true" ]]; then
-        if terraform -chdir="${env_path}" apply -input=false "${env}.tfplan"; then
+        if terraform -chdir="${env_path}" apply -input=false "./${env}.tfplan"; then
             log_success "Terraform apply completed successfully for '${env}'"
             return 0
         else
@@ -149,8 +153,10 @@ deploy_environment() {
     print_header "Deploying ${env} Environment"
     
     # Validate environment
-    if ! validate_environment "${env}"; then
-        local validation_result=$?
+    validate_environment "${env}"
+    local validation_result=$?
+    
+    if [[ ${validation_result} -ne 0 ]]; then
         if [[ ${validation_result} -eq 2 ]]; then
             log_warning "Skipping unconfigured environment: ${env}"
             return 0
