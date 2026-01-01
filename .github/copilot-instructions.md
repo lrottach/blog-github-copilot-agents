@@ -16,7 +16,7 @@ This repository contains a Terraform project for deploying Azure infrastructure.
 | Primary Language | HCL (HashiCorp Configuration Language) | - |
 | Scripting & Automation | PowerShell | >= 7.0 |
 
-Do not introduce other languages, frameworks, or tools without explicit approval.
+**IMPORTANT:** Other languages, frameworks or tools are not allowed.
 
 ---
 
